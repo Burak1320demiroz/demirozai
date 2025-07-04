@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAI Chat - AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #f0f0f0; overflow-x: hidden; }
+        
+        .sidebar {
+            position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+            background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+            border-right: 1px solid #333; display: flex; flex-direction: column;
+            transition: transform 0.3s ease; z-index: 100;
+        }
+        .sidebar.collapsed { transform: translateX(-280px); }
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #333; }
+        .new-chat-btn {
+            width: 100%; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; border: none; border-radius: 12px; padding: 0.75rem 1rem;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .new-chat-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3); }
+        
+        .chat-history { flex: 1; overflow-y: auto; padding: 1rem; }
+        .chat-item {
+            padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;
+            color: #ccc; border-left: 3px solid transparent;
+        }
+        .chat-item:hover { background: rgba(255, 255, 255, 0.05); border-left-color: #6366f1; }
+        .chat-item.active { background: rgba(99, 102, 241, 0.1); border-left-color: #6366f1; color: #f0f0f0; }
+        
+        .sidebar-footer { padding: 1.5rem; border-top: 1px solid #333; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: white;
+        }
+        .user-name { font-weight: 600; color: #f0f0f0; }
+        .user-plan { font-size: 0.8rem; color: #999; }
+        .upgrade-btn {
+            width: 100%; background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white; border: none; border-radius: 8px; padding: 0.6rem 1rem;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center;
+            justify-content: center; gap: 0.5rem;
+        }
+        .upgrade-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
+        
+        .main-content {
+            margin-left: 280px; height: 100vh; display: flex; flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+        .main-content.expanded { margin-left: 0; }
+        
+        .header {
+            background: rgba(17, 17, 17, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #333; padding: 1rem 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .menu-toggle {
+            background: none; border: none; color: #ccc; font-size: 1.2rem;
+            cursor: pointer; padding: 0.5rem; border-radius: 6px; transition: all 0.3s ease;
+        }
+        .menu-toggle:hover { background: rgba(255, 255, 255, 0.1); color: #f0f0f0; }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .plan-badge {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white; padding: 0.3rem 0.8rem; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+        }
+        .plan-badge.premium { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        
+        .chat-area {
+            flex: 1; display: flex; flex-direction: column;
+            max-width: 800px; margin: 0 auto; width: 100%; padding: 0 1.5rem;
+        }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 2rem 0; scroll-behavior: smooth; }
+        .message { margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 1rem; }
+        .message-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 0.8rem; flex-shrink: 0;
+        }
+        .user-message .message-avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .ai-message .message-avatar { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .message-content { flex: 1; line-height: 1.6; }
+        .message-text {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.5rem;
+        }
+        .user-message .message-text { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.2); }
+        .message-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .action-btn {
+            background: none; border: none; color: #999; font-size: 0.8rem;
+            cursor: pointer; padding: 0.3rem 0.6rem; border-radius: 6px;
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 0.3rem;
+        }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.05); color: #f0f0f0; }
+        
+        .input-area { padding: 1.5rem 0; border-top: 1px solid #333; }
+        .input-container {
+            position: relative; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px;
+            padding: 1rem; transition: all 0.3s ease;
+        }
+        .input-container:focus-within { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .chat-input {
+            width: 100%; background: none; border: none; color: #f0f0f0;
+            font-size: 1rem; line-height: 1.5; resize: none; min-height: 24px;
+            max-height: 200px; outline: none; font-family: inherit;
+        }
+        .chat-input::placeholder { color: #999; }
+        .input-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; }
+        .send-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; border: none; border-radius: 8px; padding: 0.6rem 1.2rem;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .send-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3); }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .usage-limit {
+            background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem;
+            text-align: center; font-size: 0.9rem;
+        }
+        .usage-bar {
+            width: 100%; height: 4px; background: rgba(245, 158, 11, 0.2);
+            border-radius: 2px; margin: 0.5rem 0; overflow: hidden;
+        }
+        .usage-fill {
+            height: 100%; background: linear-gradient(90deg, #f59e0b, #f97316);
+            transition: width 0.3s ease;
+        }
+        
+        .typing-indicator { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .typing-dots { display: flex; gap: 4px; }
+        .typing-dot {
+            width: 8px; height: 8px; background: #6366f1; border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+        
+        .welcome-screen {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; padding: 2rem;
+        }
+        .welcome-logo {
+            display: flex; align-items: center; justify-content: center;
+            margin: 40px auto 20px auto; width: 110px; height: 110px; border-radius: 50%;
+            background: radial-gradient(circle at 60% 40%, #10182a 60%, #05070d 100%);
+            box-shadow: 0 4px 32px 0 rgba(10, 20, 40, 0.55), 0 0 0 10px rgba(20, 30, 60, 0.18);
+            position: relative;
+        }
+        .welcome-logo img {
+            width: 80px; height: 80px; border-radius: 50%; background: transparent;
+            box-shadow: 0 0 16px 0 #1a237e, 0 2px 8px 0 #000a; z-index: 2;
+        }
+        .welcome-title {
+            font-size: 2.8rem; font-weight: 800; letter-spacing: 1px;
+            margin-top: 10px; margin-bottom: 8px;
+            background: linear-gradient(45deg, #4f8cff, #00bcd4);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; text-align: center;
+        }
+        .welcome-subtitle {
+            text-align: center; color: #b0bec5; font-size: 1.1rem; margin-bottom: 24px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-280px); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .chat-area { padding: 0 1rem; }
+            .header { padding: 1rem; }
+            .welcome-title { font-size: 2rem; }
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="new-chat-btn" onclick="startNewChat()">
+                <i class="fas fa-plus"></i>
+                Yeni Sohbet
+            </button>
+        </div>
+        <div class="chat-history" id="chatHistory">
+            <div class="chat-item active">
+                <i class="fas fa-comment"></i> Bugünkü Sohbet
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">U</div>
+                <div>
+                    <div class="user-name">Kullanıcı</div>
+                    <div class="user-plan" id="userPlan">Ücretsiz Plan</div>
+                </div>
+            </div>
+            <button class="upgrade-btn" id="upgradeBtn" onclick="togglePlan()">
+                <i class="fas fa-crown"></i>
+                Premium'a Geç
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <span id="selectedModelName" style="margin-left:16px; font-weight:600;">
+                    dai_demo_124m_v1.0
+                </span>
+            </div>
+            <div class="header-right">
+                <div class="plan-badge" id="planBadge">Ücretsiz</div>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="usage-limit" id="usageLimit">
+                <div>Günlük mesaj limiti: <strong id="messageCount">3/15</strong></div>
+                <div class="usage-bar">
+                    <div class="usage-fill" id="usageFill" style="width: 20%"></div>
+                </div>
+                <small>Premium'a geçin ve sınırsız kullanın!</small>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-logo">
+                        <img src="images/dai_logo.png" alt="DAI Logo">
+                    </div>
+                    <h1 class="welcome-title">DAI</h1>
+                    <p class="welcome-subtitle">AI Asistanınızla Konuşmaya Başlayın</p>
+                </div>
+            </div>
+            <div class="input-area">
+                <form class="input-container" onsubmit="event.preventDefault(); sendMessage();">
+                    <textarea 
+                        class="chat-input" 
+                        id="chatInput" 
+                        placeholder="Mesajınızı yazın..." 
+                        rows="1"
+                        onkeydown="handleKeyPress(event)"
+                        oninput="adjustTextareaHeight(this)"
+                        autocomplete="off"
+                        spellcheck="false"
+                    ></textarea>
+                    <div class="input-actions">
+                        <div></div>
+                        <button class="send-btn" id="sendBtn" type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                            Gönder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPremium = false, messageCount = 3, isTyping = false, chatHistory = [];
+        
+        const models = [
+            { value: 'dai_demo_124m_v0.1', name: 'dai_demo_124m_v0.1' },
+            { value: 'dai_demo_124m_v0.2', name: 'dai_demo_124m_v0.2' }
+        ];
+        let selectedModel = models[0];
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        function togglePlan() {
+            isPremium = !isPremium;
+            const planBadge = document.getElementById('planBadge');
+            const userPlan = document.getElementById('userPlan');
+            const upgradeBtn = document.getElementById('upgradeBtn');
+            const usageLimit = document.getElementById('usageLimit');
+            
+            if (isPremium) {
+                planBadge.textContent = 'Premium';
+                planBadge.className = 'plan-badge premium';
+                userPlan.textContent = 'Premium Plan';
+                upgradeBtn.innerHTML = '<i class="fas fa-crown"></i> Premium Aktif';
+                upgradeBtn.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+                usageLimit.style.display = 'none';
+            } else {
+                planBadge.textContent = 'Ücretsiz';
+                planBadge.className = 'plan-badge';
+                userPlan.textContent = 'Ücretsiz Plan';
+                upgradeBtn.innerHTML = '<i class="fas fa-crown"></i> Premium\'a Geç';
+                upgradeBtn.style.background = 'linear-gradient(135deg, #f59e0b, #f97316)';
+                usageLimit.style.display = 'block';
+            }
+            updateUsageDisplay();
+        }
+
+        function updateUsageDisplay() {
+            if (!isPremium) {
+                const messageCountEl = document.getElementById('messageCount');
+                const usageFill = document.getElementById('usageFill');
+                messageCountEl.textContent = `${messageCount}/15`;
+                usageFill.style.width = `${(messageCount / 15) * 100}%`;
+                
+                if (messageCount >= 15) {
+                    document.getElementById('sendBtn').disabled = true;
+                    document.getElementById('chatInput').placeholder = 'Günlük mesaj limitiniz doldu. Premium\'a geçin!';
+                }
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function adjustTextareaHeight(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+            if (!isPremium && messageCount >= 15) {
+                alert('Günlük mesaj limitiniz doldu. Premium\'a geçin!');
+                return;
+            }
+            
+            document.getElementById('welcomeScreen').style.display = 'none';
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+            
+            if (!isPremium) {
+                messageCount++;
+                updateUsageDisplay();
+            }
+            
+            showTypingIndicator();
+            
+            try {
+                const response = await simulateAPIResponse(message);
+                removeTypingIndicator();
+                addMessage(response, 'ai');
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.', 'ai');
+            }
+        }
+
+        async function simulateAPIResponse(message) {
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            const responses = [
+                `Merhaba! Size nasıl yardımcı olabilirim?`,
+                `Sorunuzu anladım ve size yardımcı olmaya çalışacağım.`,
+                `Başka sorularınız var mı?`
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${sender === 'user' ? '🧑' : '🤖'}</div>
+                <div class="message-content">
+                    <div class="message-text">${text}</div>
+                    ${sender === 'ai' ? `
+                        <div class="message-actions">
+                            <button class="action-btn" onclick="copyMessage(this)">
+                                <i class="fas fa-copy"></i> Kopyala
+                            </button>
+                            <button class="action-btn" onclick="regenerateMessage()">
+                                <i class="fas fa-redo"></i> Yeniden Oluştur
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            isTyping = true;
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message ai-message typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            
+            typingDiv.innerHTML = `
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content">
+                    <div class="message-text">
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            isTyping = false;
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) typingIndicator.remove();
+        }
+
+        function copyMessage(button) {
+            const messageText = button.closest('.message-content').querySelector('.message-text').textContent;
+            navigator.clipboard.writeText(messageText).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Kopyalandı';
+                button.style.color = '#10b981';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.color = '#999';
+                }, 2000);
+            });
+        }
+
+        function regenerateMessage() {
+            const messages = document.querySelectorAll('.ai-message');
+            const lastAIMessage = messages[messages.length - 1];
+            
+            if (lastAIMessage && !lastAIMessage.classList.contains('typing-indicator')) {
+                lastAIMessage.remove();
+                const userMessages = document.querySelectorAll('.user-message');
+                const lastUserMessage = userMessages[userMessages.length - 1];
+                
+                if (lastUserMessage) {
+                    const userText = lastUserMessage.querySelector('.message-text').textContent;
+                    showTypingIndicator();
+                    
+                    setTimeout(async () => {
+                        const newResponse = await simulateAPIResponse(userText);
+                        removeTypingIndicator();
+                        addMessage(newResponse, 'ai');
+                    }, 1000);
+                }
+            }
+        }
+
+        function startNewChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            
+            chatMessages.innerHTML = '';
+            chatMessages.appendChild(welcomeScreen);
+            
+            if (!isPremium) {
+                messageCount = 0;
+                updateUsageDisplay();
+            }
+            
+            welcomeScreen.style.display = 'flex';
+            document.getElementById('chatInput').value = '';
+            document.getElementById('chatInput').style.height = 'auto';
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', updateUsageDisplay);
+    </script>
+</body>
+</html>
