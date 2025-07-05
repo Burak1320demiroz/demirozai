@@ -388,12 +388,7 @@
 
         async function simulateAPIResponse(message) {
             await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-            const responses = [
-                `Merhaba! Size nasıl yardımcı olabilirim?`,
-                `Sorunuzu anladım ve size yardımcı olmaya çalışacağım.`,
-                `Başka sorularınız var mı?`
-            ];
-            return responses[Math.floor(Math.random() * responses.length)];
+            return "Yakında dai_demo hizmette! 🚀";
         }
 
         function addMessage(text, sender) {
