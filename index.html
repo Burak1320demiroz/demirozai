@@ -6,7 +6,6 @@
     <title>DemirozAI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Global Styles */
         * {
             margin: 0;
             padding: 0;
@@ -15,8 +14,8 @@
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0a23 0%, #121c3a 100%);
-            color: #e6f1ff;
+            background: linear-gradient(135deg, #000000 0%, #1f2a44 100%);
+            color: #ffffff;
             line-height: 1.6;
             overflow-x: hidden;
         }
@@ -27,12 +26,11 @@
             padding: 0 20px;
         }
 
-        /* Header Styles */
         header {
             padding: 25px 0;
             position: sticky;
             top: 0;
-            background: rgba(10, 15, 35, 0.95);
+            background: rgba(0, 0, 0, 0.95);
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
             z-index: 100;
             backdrop-filter: blur(10px);
@@ -50,21 +48,20 @@
             gap: 12px;
             font-size: 1.8rem;
             font-weight: 700;
-            color: #4cc9f0;
+            color: #2d9cdb;
         }
 
         .logo img {
             height: 40px;
-            filter: drop-shadow(0 0 8px rgba(76, 201, 240, 0.5));
+            filter: drop-shadow(0 0 8px rgba(45, 156, 219, 0.5));
         }
 
-        /* Mobile Menu Button */
         .mobile-menu-btn {
             display: none;
             background: none;
             border: none;
             font-size: 1.8rem;
-            color: #4cc9f0;
+            color: #2d9cdb;
             cursor: pointer;
         }
 
@@ -74,7 +71,6 @@
             }
         }
 
-        /* Hero Section */
         .hero {
             min-height: 85vh;
             display: flex;
@@ -82,18 +78,18 @@
             padding: 80px 0 60px;
             position: relative;
             overflow: hidden;
+            background: linear-gradient(135deg, #000000 0%, #1f2a44 100%);
         }
 
         .hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(31, 97, 141, 0.2) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(76, 201, 240, 0.15) 0%, transparent 40%);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(45, 156, 219, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(86, 204, 242, 0.2) 0%, transparent 40%),
+                linear-gradient(60deg, rgba(86, 204, 242, 0.1), transparent 60%),
+                linear-gradient(-60deg, rgba(45, 156, 219, 0.1), transparent 60%);
             z-index: -1;
         }
 
@@ -109,17 +105,17 @@
             font-size: 3rem;
             font-weight: 800;
             margin-bottom: 25px;
-            background: linear-gradient(45deg, #4cc9f0, #3a86ff);
+            background: linear-gradient(45deg, #2d9cdb, #56ccf2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 20px rgba(76, 201, 240, 0.2);
+            text-shadow: 0 0 20px rgba(45, 156, 219, 0.2);
         }
 
         .hero-subtitle {
             font-size: 1.3rem;
             margin-bottom: 20px;
-            color: #a3b3cc;
+            color: #b0cbe7;
             max-width: 700px;
             margin-left: auto;
             margin-right: auto;
@@ -133,7 +129,6 @@
             flex-wrap: wrap;
         }
 
-        /* Buttons */
         .btn {
             padding: 14px 28px;
             border-radius: 50px;
@@ -149,69 +144,66 @@
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, #3a86ff, #4361ee);
+            background: linear-gradient(45deg, #2d9cdb, #56ccf2);
             color: white;
-            box-shadow: 0 4px 20px rgba(58, 134, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(45, 156, 219, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(58, 134, 255, 0.4);
+            box-shadow: 0 6px 25px rgba(45, 156, 219, 0.4);
         }
 
         .btn-secondary {
             background: transparent;
-            color: #4cc9f0;
-            border: 2px solid #4cc9f0;
+            color: #2d9cdb;
+            border: 2px solid #2d9cdb;
         }
 
         .btn-secondary:hover {
-            background: rgba(76, 201, 240, 0.1);
+            background: rgba(45, 156, 219, 0.1);
             transform: translateY(-3px);
         }
 
-        /* Footer */
         footer {
-            background: rgba(8, 12, 28, 0.95);
+            background: rgba(0, 0, 0, 0.95);
             padding: 60px 0 30px;
             text-align: center;
-            border-top: 1px solid rgba(76, 201, 240, 0.1);
+            border-top: 1px solid rgba(45, 156, 219, 0.1);
         }
 
         .footer-logo {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 20px;
-            color: #4cc9f0;
+            color: #2d9cdb;
         }
 
         .copyright {
-            color: #5d7a9c;
+            color: #b0cbe7;
             font-size: 0.9rem;
             padding-top: 20px;
-            border-top: 1px solid rgba(76, 201, 240, 0.1);
+            border-top: 1px solid rgba(45, 156, 219, 0.1);
             max-width: 600px;
             margin: 0 auto;
         }
 
-        /* Responsive Adjustments */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.3rem;
             }
-            
+
             .cta-buttons {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .hero {
                 min-height: auto;
                 padding: 60px 0 40px;
             }
         }
 
-        /* Floating Particles */
         .particles {
             position: absolute;
             top: 0;
@@ -225,7 +217,7 @@
         .particle {
             position: absolute;
             border-radius: 50%;
-            background: rgba(76, 201, 240, 0.3);
+            background: rgba(45, 156, 219, 0.3);
             animation: float 8s infinite ease-in-out;
         }
 
@@ -236,6 +228,8 @@
             75% { transform: translateY(20px) translateX(10px); }
         }
     </style>
+
+
 </head>
 <body>
     <div class="particles" id="particles"></div>
@@ -257,8 +251,8 @@
     <section class="hero" id="home">
         <div class="container">
             <div class="hero-content">
-                <h1 class="hero-title">Matematik</h1>
                 <p class="hero-subtitle"></p>
+                <img src="images/slogan.png" alt="Slogan" style="max-width: 50%; height: auto; margin-top: 20px;">
                 <div class="cta-buttons">
                     <a href="chatbot.html" class="btn btn-primary">
                         <i class="fas fa-play-circle"></i> Ücretsiz MPI Deneyin
